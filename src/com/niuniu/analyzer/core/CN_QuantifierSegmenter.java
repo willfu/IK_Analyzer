@@ -22,15 +22,15 @@
  * provided by Linliangyi and copyright 2012 by Oolong studio
  * 
  */
-package org.wltea.analyzer.core;
+package com.niuniu.analyzer.core;
 
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.wltea.analyzer.dic.Dictionary;
-import org.wltea.analyzer.dic.Hit;
+import com.niuniu.analyzer.dic.Dictionary;
+import com.niuniu.analyzer.dic.Hit;
 
 /**
  * 

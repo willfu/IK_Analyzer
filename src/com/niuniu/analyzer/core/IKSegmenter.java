@@ -21,16 +21,16 @@
  * 版权声明 2012，乌龙茶工作室
  * provided by Linliangyi and copyright 2012 by Oolong studio
  */
-package org.wltea.analyzer.core;
+package com.niuniu.analyzer.core;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.wltea.analyzer.cfg.Configuration;
-import org.wltea.analyzer.cfg.DefaultConfig;
-import org.wltea.analyzer.dic.Dictionary;
+import com.niuniu.analyzer.cfg.Configuration;
+import com.niuniu.analyzer.cfg.DefaultConfig;
+import com.niuniu.analyzer.dic.Dictionary;
 
 /**
  * IK分词器主类

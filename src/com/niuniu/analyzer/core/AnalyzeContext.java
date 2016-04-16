@@ -22,7 +22,7 @@
  * provided by Linliangyi and copyright 2012 by Oolong studio
  * 
  */
-package org.wltea.analyzer.core;
+package com.niuniu.analyzer.core;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -32,8 +32,8 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
-import org.wltea.analyzer.cfg.Configuration;
-import org.wltea.analyzer.dic.Dictionary;
+import com.niuniu.analyzer.cfg.Configuration;
+import com.niuniu.analyzer.dic.Dictionary;
 
 /**
  * 

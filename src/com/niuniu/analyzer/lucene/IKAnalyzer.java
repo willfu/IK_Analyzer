@@ -22,7 +22,7 @@
  * provided by Linliangyi and copyright 2012 by Oolong studio
  * 
  */
-package org.wltea.analyzer.lucene;
+package com.niuniu.analyzer.lucene;
 
 import java.io.Reader;
 

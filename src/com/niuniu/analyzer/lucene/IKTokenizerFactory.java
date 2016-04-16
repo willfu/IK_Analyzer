@@ -1,4 +1,4 @@
-package org.wltea.analyzer.lucene;
+package com.niuniu.analyzer.lucene;
 
 import java.io.Reader;
 import java.util.Map;

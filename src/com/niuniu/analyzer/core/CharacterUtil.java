@@ -23,7 +23,7 @@
  * 
  * 字符集识别工具类
  */
-package org.wltea.analyzer.core;
+package com.niuniu.analyzer.core;
 
 /**
  *

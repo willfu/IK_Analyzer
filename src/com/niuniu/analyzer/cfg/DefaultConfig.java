@@ -23,7 +23,7 @@
  * 
  * 
  */
-package org.wltea.analyzer.cfg;
+package com.niuniu.analyzer.cfg;
 
 import java.awt.datatransfer.StringSelection;
 import java.io.IOException;
@@ -43,8 +43,8 @@ public class DefaultConfig implements Configuration{
 	/*
 	 * 分词器默认字典路径 
 	 */
-	private static final String PATH_DIC_MAIN = "org/wltea/analyzer/dic/main2012.dic";
-	private static final String PATH_DIC_QUANTIFIER = "org/wltea/analyzer/dic/quantifier.dic";
+	private static final String PATH_DIC_MAIN = "com/niuniu/analyzer/dic/niuniu.dic";
+	private static final String PATH_DIC_QUANTIFIER = "com/niuniu/analyzer/dic/quantifier.dic";
 
 	/*
 	 * 分词器配置文件路径

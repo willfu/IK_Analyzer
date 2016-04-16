@@ -24,7 +24,7 @@
 
  * 
  */
-package org.wltea.analyzer.lucene;
+package com.niuniu.analyzer.lucene;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -34,8 +34,8 @@ import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
 import org.apache.lucene.analysis.tokenattributes.TypeAttribute;
 
-import org.wltea.analyzer.core.IKSegmenter;
-import org.wltea.analyzer.core.Lexeme;
+import com.niuniu.analyzer.core.IKSegmenter;
+import com.niuniu.analyzer.core.Lexeme;
 
 /**
  * IK分词器 Lucene Tokenizer适配器类

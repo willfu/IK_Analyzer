@@ -22,7 +22,7 @@
  * provided by Linliangyi and copyright 2012 by Oolong studio
  * 
  */
-package org.wltea.analyzer.cfg;
+package com.niuniu.analyzer.cfg;
 
 import java.util.List;
 

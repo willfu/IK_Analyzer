@@ -23,7 +23,7 @@
  * provided by Linliangyi and copyright 2012 by Oolong studio
  * 
  */
-package org.wltea.analyzer.dic;
+package com.niuniu.analyzer.dic;
 
 /**
  * 表示一次词典匹配的命中

@@ -23,7 +23,7 @@
  * 
  * 
  */
-package org.wltea.analyzer.sample;
+package com.niuniu.analyzer.sample;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -33,7 +33,8 @@ import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
 import org.apache.lucene.analysis.tokenattributes.TypeAttribute;
-import org.wltea.analyzer.lucene.IKAnalyzer;
+
+import com.niuniu.analyzer.lucene.IKAnalyzer;
 
 /**
  * 使用IKAnalyzer进行分词的演示
@@ -50,7 +51,7 @@ public class IKAnalzyerDemo {
 	    TokenStream ts = null;
 		try {
 			//ts = analyzer.tokenStream("myfield", new StringReader("Lucene 是apache软件基金会4 jakarta项目组的一个子项目，是一个开放源代码的全文检索引擎工具包，即它不是一个完整的全文检索引擎，而是一个全文检索引擎的架构"));
-			ts = analyzer.tokenStream("myfield", new StringReader("宝马i3不如奔驰1982系给力，但是bmw1234和思域很不错"));
+			ts = analyzer.tokenStream("myfield", new StringReader("宝马i3不如奔驰1982系给力，但是bmw1234和思域很不错，所以要加钱上卡宴"));
 			//ts = analyzer.tokenStream("myfield", new StringReader("vt 520 x3"));
 			//获取词元位置属性
 		    OffsetAttribute  offset = ts.addAttribute(OffsetAttribute.class); 
