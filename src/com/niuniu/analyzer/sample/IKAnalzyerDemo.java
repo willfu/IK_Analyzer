@@ -45,12 +45,13 @@ public class IKAnalzyerDemo {
 	
 	public static void main(String[] args){
 		//构建IK分词器，使用smart分词模式
-		Analyzer analyzer = new IKAnalyzer(true,false);
+		Analyzer analyzer = new IKAnalyzer(true,2, 4);
 		
 		//获取Lucene的TokenStream对象
 	    TokenStream ts = null;
 		try {
 			//ts = analyzer.tokenStream("myfield", new StringReader("Lucene 是apache软件基金会4 jakarta项目组的一个子项目，是一个开放源代码的全文检索引擎工具包，即它不是一个完整的全文检索引擎，而是一个全文检索引擎的架构"));
+			//
 			ts = analyzer.tokenStream("myfield", new StringReader("宝马i3不如奔驰1982系给力，但是bmw1234和思域很不错，所以要加钱上卡宴以及宝马740Li"));
 			//ts = analyzer.tokenStream("myfield", new StringReader("vt 520 x3"));
 			//获取词元位置属性

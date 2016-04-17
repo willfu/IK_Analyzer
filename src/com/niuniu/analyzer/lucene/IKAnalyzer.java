@@ -36,8 +36,8 @@ import org.apache.lucene.analysis.Tokenizer;
 public final class IKAnalyzer extends Analyzer{
 	
 	private boolean useSmart;
-	private boolean separate;
-	private int separateMinCount;
+	private int useMerge;
+	private int mergeSize;
 	
 	public boolean useSmart() {
 		return useSmart;
@@ -47,20 +47,20 @@ public final class IKAnalyzer extends Analyzer{
 		this.useSmart = useSmart;
 	}
 	
-	public boolean separate() {
-		return separate;
+	public int useMerge() {
+		return useMerge;
 	}
 
-	public void setSeparate(boolean separate) {
-		this.separate = separate;
+	public void setMerge(int useMerge) {
+		this.useMerge = useMerge;
 	}	
 	
-	public int separateMinCount() {
-		return separateMinCount;
+	public int mergeSize() {
+		return mergeSize;
 	}
 
-	public void setSeparateMinCount(int separateMinCount) {
-		this.separateMinCount = separateMinCount;
+	public void setMergeSize(int mergeSize) {
+		this.mergeSize = mergeSize;
 	}	
 
 	/**
@@ -82,17 +82,16 @@ public final class IKAnalyzer extends Analyzer{
 		this.useSmart = useSmart;
 	}
 	
-	public IKAnalyzer(boolean useSmart, boolean separate){
+	public IKAnalyzer(boolean useSmart, int useMerge){
 		super();
-		this.useSmart = useSmart;
-		this.separate = separate;
+		this.useMerge = useMerge;
 	}
 
-	public IKAnalyzer(boolean useSmart, boolean separate, int separateMinCount){
+	public IKAnalyzer(boolean useSmart, int useMerge, int mergeSize){
 		super();
 		this.useSmart = useSmart;
-		this.separate = separate;
-		this.separateMinCount = separateMinCount;
+		this.useMerge = useMerge;
+		this.mergeSize = mergeSize;
 	}
 
 	
@@ -101,7 +100,7 @@ public final class IKAnalyzer extends Analyzer{
 	 */
 	@Override
 	protected TokenStreamComponents createComponents(String fieldName, final Reader in) {
-		Tokenizer _IKTokenizer = new IKTokenizer(in , this.useSmart(),this.separate(), this.separateMinCount());
+		Tokenizer _IKTokenizer = new IKTokenizer(in , this.useSmart(),this.useMerge(), this.mergeSize());
 		return new TokenStreamComponents(_IKTokenizer);
 	}
 

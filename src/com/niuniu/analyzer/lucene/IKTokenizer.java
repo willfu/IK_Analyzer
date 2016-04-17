@@ -42,7 +42,9 @@ import com.niuniu.analyzer.core.Lexeme;
  * 兼容Lucene 4.0版本
  */
 public final class IKTokenizer extends Tokenizer {
-	
+	public static boolean DEFAULT_USESMART = true;
+	public static int DEFAULT_USEMERGE = 0;
+	public static Integer DEFAULT_MERGESIZE = 3;
 	//IK分词器实现
 	private IKSegmenter _IKImplement;
 	
@@ -60,12 +62,12 @@ public final class IKTokenizer extends Tokenizer {
 	 * @param in
 	 * @param useSmart
 	 */
-	public IKTokenizer(Reader in , boolean useSmart, boolean separate, int separateMinCount){
+	public IKTokenizer(Reader in , boolean useSmart, int useMerge, int mergeSize){
 	    super(in);
 	    offsetAtt = addAttribute(OffsetAttribute.class);
 	    termAtt = addAttribute(CharTermAttribute.class);
 	    typeAtt = addAttribute(TypeAttribute.class);
-		_IKImplement = new IKSegmenter(input , useSmart, separate, separateMinCount);
+		_IKImplement = new IKSegmenter(input , useSmart, useMerge, mergeSize);
 	}
 
 	/* (non-Javadoc)

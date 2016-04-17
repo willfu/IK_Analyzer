@@ -61,11 +61,11 @@ public class DefaultConfig implements Configuration{
 	 */
 	private boolean useSmart;
 	/*
-	 * 英文和数字要不要隔开，例如bmw740li
+	 * 英文和数字处理逻辑要不要隔开，例如bmw740li
 	 */
-	private boolean separate;
+	private int useMerge;
 	
-	private int separateMinCount;
+	private int mergeSize;
 	
 	/**
 	 * 返回单例
@@ -112,20 +112,20 @@ public class DefaultConfig implements Configuration{
 		this.useSmart = useSmart;
 	}	
 	
-	public boolean separate() {
-		return separate;
+	public int useMerge() {
+		return useMerge;
 	}
 
-	public void setSeparate(boolean separate) {
-		this.separate = separate;
+	public void setUseMerge(int useMerge) {
+		this.useMerge = useMerge;
 	}	
 	
-	public int separateMinCount() {
-		return separateMinCount>0?separateMinCount:5;
+	public int mergeSize() {
+		return mergeSize;
 	}
 
-	public void setSeparateMinCount(int separateMinCount) {
-		this.separateMinCount = separateMinCount;
+	public void setMergeSize(int mergeSize) {
+		this.mergeSize = mergeSize;
 	}	
 	
 	/**

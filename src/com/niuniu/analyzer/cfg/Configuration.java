@@ -49,10 +49,10 @@ public interface Configuration {
 	 */
 	public void setUseSmart(boolean useSmart);
 	
-	public boolean separate();
-	public int separateMinCount();
-	public void setSeparate(boolean separate);
-	public void setSeparateMinCount(int separateMinCount);
+	public int useMerge();
+	public int mergeSize();
+	public void setUseMerge(int useMerge);
+	public void setMergeSize(int mergeSize);
 	
 	/**
 	 * 获取主词典路径

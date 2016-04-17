@@ -78,25 +78,47 @@ class AnalyzeContext {
 	private Configuration cfg;
     
 	//后处理逻辑，用于处理业务
-	public boolean postProcess(int minCount){
+	public boolean postProcess(int useMerge, int mergeSize){
+		/*
+		 * useMerge=false:
+		 * 	bmw740li => bmw 740 li
+		 * useMerge=true:
+		 * 	bmw740li => bmw 740 li bmw740 740li
+		 */
 		if(results.size()==0)
 			return true;
 		Lexeme pre = results.get(0);
 		Lexeme post = null;
 		for(int i=1;i<results.size();){
 			post = results.get(i);
-			if((pre.getLength()<minCount || post.getLength()<minCount)
-					&& (pre.getLexemeType()<3 && post.getLexemeType()<3)){
-				pre.append(post, 3);
-				results.remove(i);
-				continue;
-			}
+			if(useMerge==2){
+				// bmw123 => bmw 123 bmw123
+				if((pre.getLength()<mergeSize || post.getLength()<mergeSize)
+						&& (pre.getLexemeType()<3 && post.getLexemeType()<3)){
+					Lexeme target = new Lexeme(pre.getOffset(), pre.getBegin(), pre.getLength(), pre.getLexemeType());
+					if(target.append(post, 3)){
+						results.addLast(target);
+					}
+				}
+			}else if(useMerge==1){
+				//only merge
+				//bmw123 => bmw123
+				if((pre.getLength()<mergeSize || post.getLength()<mergeSize)
+						&& (pre.getLexemeType()<3 && post.getLexemeType()<3)){
+					Lexeme target = new Lexeme(pre.getOffset(), pre.getBegin(), pre.getLength(), pre.getLexemeType());
+					if(pre.append(post, 3)){
+						results.remove(i);
+						continue;
+					}
+				}
+			} 
+			
 			if(pre.getLexemeType()==2 && post.getLength()==1 ){
 				char text = segmentBuff[post.getBegin()];
 				if(text=='系' || text=='款' || text=='级' ){
-					pre.append(post, 4);
-					results.remove(i);
-					continue;
+					Lexeme target = new Lexeme(pre.getOffset(), pre.getBegin(), pre.getLength(), pre.getLexemeType());
+					if(target.append(post, 4))
+						results.addLast(target);
 				}
 			}
 			i++;

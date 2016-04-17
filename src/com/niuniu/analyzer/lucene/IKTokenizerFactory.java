@@ -9,20 +9,26 @@ import org.apache.lucene.analysis.util.TokenizerFactory;
 public class IKTokenizerFactory extends TokenizerFactory{
 	
 	boolean useSmart;
-	boolean separate;
-	int sepMinCount;
+	int useMerge;
+	int mergeSize;
 	
 	@Override
   public void init(Map<String, String> args) {
     super.init(args);
-    useSmart = Boolean.parseBoolean(args.get("useSmart"));
-    separate = Boolean.parseBoolean(args.get("separate"));
-    sepMinCount = Integer.parseInt(args.get("sepMinCount"));
+    
+    String smart = args.get("useSmart");
+    useSmart = (smart != null ?Boolean.parseBoolean(smart) : IKTokenizer.DEFAULT_USESMART);
+    
+    String um = args.get("useMerge");
+    useMerge = (um != null ? Integer.parseInt(um) : IKTokenizer.DEFAULT_USEMERGE);
+    
+    String ms = args.get("mergeSize");
+    mergeSize = (ms != null ? Integer.parseInt(ms) : IKTokenizer.DEFAULT_MERGESIZE);
   }
 
 	@Override
 	public Tokenizer create(Reader in)
 	{
-        return new IKTokenizer(in, useSmart, separate, sepMinCount);
+        return new IKTokenizer(in, useSmart, useMerge, mergeSize);
     }
 }

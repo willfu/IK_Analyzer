@@ -58,12 +58,12 @@ public final class IKSegmenter {
 	 * 非智能分词：细粒度输出所有可能的切分结果
 	 * 智能分词： 合并数词和量词，对分词结果进行歧义判断
 	 */
-	public IKSegmenter(Reader input , boolean useSmart, boolean separate, int separateMinCount){
+	public IKSegmenter(Reader input , boolean useSmart, int useMerge, int mergeSize){
 		this.input = input;
 		this.cfg = DefaultConfig.getInstance();
 		this.cfg.setUseSmart(useSmart);
-		this.cfg.setSeparate(separate);
-		this.cfg.setSeparateMinCount(separateMinCount);
+		this.cfg.setUseMerge(useMerge);
+		this.cfg.setMergeSize(mergeSize);
 		this.init();
 	}
 	
@@ -151,11 +151,7 @@ public final class IKSegmenter {
 			//将分词结果输出到结果集，并处理未切分的单个CJK字符
 			context.outputToResult();
 			//牛牛业务逻辑
-			if(this.cfg.separate()){
-				context.postProcess(0);
-			}else{
-				context.postProcess(cfg.separateMinCount());
-			}
+			context.postProcess(this.cfg.useMerge(), this.cfg.mergeSize());
 			//记录本次分词的缓冲区位移
 			context.markBufferOffset();			
 		}
