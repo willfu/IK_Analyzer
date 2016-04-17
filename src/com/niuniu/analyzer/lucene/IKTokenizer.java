@@ -60,12 +60,12 @@ public final class IKTokenizer extends Tokenizer {
 	 * @param in
 	 * @param useSmart
 	 */
-	public IKTokenizer(Reader in , boolean useSmart){
+	public IKTokenizer(Reader in , boolean useSmart, boolean separate, int separateMinCount){
 	    super(in);
 	    offsetAtt = addAttribute(OffsetAttribute.class);
 	    termAtt = addAttribute(CharTermAttribute.class);
 	    typeAtt = addAttribute(TypeAttribute.class);
-		_IKImplement = new IKSegmenter(input , useSmart);
+		_IKImplement = new IKSegmenter(input , useSmart, separate, separateMinCount);
 	}
 
 	/* (non-Javadoc)

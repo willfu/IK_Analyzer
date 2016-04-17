@@ -60,6 +60,12 @@ public class DefaultConfig implements Configuration{
 	 * 是否使用smart方式分词
 	 */
 	private boolean useSmart;
+	/*
+	 * 英文和数字要不要隔开，例如bmw740li
+	 */
+	private boolean separate;
+	
+	private int separateMinCount;
 	
 	/**
 	 * 返回单例
@@ -104,6 +110,22 @@ public class DefaultConfig implements Configuration{
 	 */
 	public void setUseSmart(boolean useSmart) {
 		this.useSmart = useSmart;
+	}	
+	
+	public boolean separate() {
+		return separate;
+	}
+
+	public void setSeparate(boolean separate) {
+		this.separate = separate;
+	}	
+	
+	public int separateMinCount() {
+		return separateMinCount>0?separateMinCount:5;
+	}
+
+	public void setSeparateMinCount(int separateMinCount) {
+		this.separateMinCount = separateMinCount;
 	}	
 	
 	/**
@@ -169,5 +191,6 @@ public class DefaultConfig implements Configuration{
 		DefaultConfig defaultConfig = new DefaultConfig();
 		System.out.println(defaultConfig.getExtStopWordDictionarys());
 	}
+
 
 }

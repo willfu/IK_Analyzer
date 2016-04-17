@@ -49,6 +49,10 @@ public interface Configuration {
 	 */
 	public void setUseSmart(boolean useSmart);
 	
+	public boolean separate();
+	public int separateMinCount();
+	public void setSeparate(boolean separate);
+	public void setSeparateMinCount(int separateMinCount);
 	
 	/**
 	 * 获取主词典路径

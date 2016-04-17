@@ -78,14 +78,14 @@ class AnalyzeContext {
 	private Configuration cfg;
     
 	//后处理逻辑，用于处理业务
-	public boolean postProcess(){
+	public boolean postProcess(int minCount){
 		if(results.size()==0)
 			return true;
 		Lexeme pre = results.get(0);
 		Lexeme post = null;
 		for(int i=1;i<results.size();){
 			post = results.get(i);
-			if((pre.getLength()<2 || post.getLength()<2) &&(pre.getLength()<3 && post.getLength()<3)
+			if((pre.getLength()<minCount || post.getLength()<minCount)
 					&& (pre.getLexemeType()<3 && post.getLexemeType()<3)){
 				pre.append(post, 3);
 				results.remove(i);

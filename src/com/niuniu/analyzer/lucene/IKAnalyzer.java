@@ -36,6 +36,8 @@ import org.apache.lucene.analysis.Tokenizer;
 public final class IKAnalyzer extends Analyzer{
 	
 	private boolean useSmart;
+	private boolean separate;
+	private int separateMinCount;
 	
 	public boolean useSmart() {
 		return useSmart;
@@ -44,6 +46,22 @@ public final class IKAnalyzer extends Analyzer{
 	public void setUseSmart(boolean useSmart) {
 		this.useSmart = useSmart;
 	}
+	
+	public boolean separate() {
+		return separate;
+	}
+
+	public void setSeparate(boolean separate) {
+		this.separate = separate;
+	}	
+	
+	public int separateMinCount() {
+		return separateMinCount;
+	}
+
+	public void setSeparateMinCount(int separateMinCount) {
+		this.separateMinCount = separateMinCount;
+	}	
 
 	/**
 	 * IK分词器Lucene  Analyzer接口实现类
@@ -63,13 +81,27 @@ public final class IKAnalyzer extends Analyzer{
 		super();
 		this.useSmart = useSmart;
 	}
+	
+	public IKAnalyzer(boolean useSmart, boolean separate){
+		super();
+		this.useSmart = useSmart;
+		this.separate = separate;
+	}
 
+	public IKAnalyzer(boolean useSmart, boolean separate, int separateMinCount){
+		super();
+		this.useSmart = useSmart;
+		this.separate = separate;
+		this.separateMinCount = separateMinCount;
+	}
+
+	
 	/**
 	 * 重载Analyzer接口，构造分词组件
 	 */
 	@Override
 	protected TokenStreamComponents createComponents(String fieldName, final Reader in) {
-		Tokenizer _IKTokenizer = new IKTokenizer(in , this.useSmart());
+		Tokenizer _IKTokenizer = new IKTokenizer(in , this.useSmart(),this.separate(), this.separateMinCount());
 		return new TokenStreamComponents(_IKTokenizer);
 	}
 
