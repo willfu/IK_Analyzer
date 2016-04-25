@@ -45,7 +45,7 @@ public class IKAnalzyerDemo {
 	
 	public static void main(String[] args){
 		//构建IK分词器，使用smart分词模式
-		Analyzer analyzer = new IKAnalyzer(true,2, 4);
+		Analyzer analyzer = new IKAnalyzer(true, 1, 4);
 		
 		//获取Lucene的TokenStream对象
 	    TokenStream ts = null;

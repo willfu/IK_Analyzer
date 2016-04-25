@@ -105,7 +105,6 @@ class AnalyzeContext {
 				//bmw123 => bmw123
 				if((pre.getLength()<mergeSize || post.getLength()<mergeSize)
 						&& (pre.getLexemeType()<3 && post.getLexemeType()<3)){
-					Lexeme target = new Lexeme(pre.getOffset(), pre.getBegin(), pre.getLength(), pre.getLexemeType());
 					if(pre.append(post, 3)){
 						results.remove(i);
 						continue;
@@ -116,9 +115,16 @@ class AnalyzeContext {
 			if(pre.getLexemeType()==2 && post.getLength()==1 ){
 				char text = segmentBuff[post.getBegin()];
 				if(text=='系' || text=='款' || text=='级' ){
-					Lexeme target = new Lexeme(pre.getOffset(), pre.getBegin(), pre.getLength(), pre.getLexemeType());
-					if(target.append(post, 4))
-						results.addLast(target);
+					if(useMerge==2){
+						Lexeme target = new Lexeme(pre.getOffset(), pre.getBegin(), pre.getLength(), pre.getLexemeType());
+						if(target.append(post, 4))
+							results.addLast(target);
+					}else if(useMerge==1){
+						if(pre.append(post, 4)){
+							results.remove(i);
+							continue;
+						}
+					}
 				}
 			}
 			i++;
