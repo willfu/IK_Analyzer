@@ -31,11 +31,13 @@ import java.io.Reader;
 
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
+import org.apache.lucene.analysis.tokenattributes.FlagsAttribute;
 import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
 import org.apache.lucene.analysis.tokenattributes.TypeAttribute;
 
 import com.niuniu.analyzer.core.IKSegmenter;
 import com.niuniu.analyzer.core.Lexeme;
+import com.sun.org.apache.xerces.internal.impl.xs.identity.FieldActivator;
 
 /**
  * IK分词器 Lucene Tokenizer适配器类
@@ -54,6 +56,7 @@ public final class IKTokenizer extends Tokenizer {
 	private final OffsetAttribute offsetAtt;
 	//词元分类属性（该属性分类参考org.wltea.analyzer.core.Lexeme中的分类常量）
 	private final TypeAttribute typeAtt;
+	
 	//记录最后一个词元的结束位置
 	private int endPosition;
 	
@@ -66,7 +69,7 @@ public final class IKTokenizer extends Tokenizer {
 	    super(in);
 	    offsetAtt = addAttribute(OffsetAttribute.class);
 	    termAtt = addAttribute(CharTermAttribute.class);
-	    typeAtt = addAttribute(TypeAttribute.class);
+	    typeAtt = addAttribute(TypeAttribute.class);	    
 		_IKImplement = new IKSegmenter(input , useSmart, useMerge, mergeSize);
 	}
 
@@ -88,8 +91,10 @@ public final class IKTokenizer extends Tokenizer {
 			offsetAtt.setOffset(nextLexeme.getBeginPosition(), nextLexeme.getEndPosition());
 			//记录分词的最后位置
 			endPosition = nextLexeme.getEndPosition();
-			//记录词元分类
-			typeAtt.setType(nextLexeme.getLexemeTypeString());			
+			//记录词元所属field
+			typeAtt.setType(nextLexeme.getContentTypeString());
+			
+			
 			//返会true告知还有下个词元
 			return true;
 		}

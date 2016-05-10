@@ -54,7 +54,11 @@ public class DefaultConfig implements Configuration{
 	private static final String EXT_DICT = "ext_dict";
 	//配置属性——扩展停止词典
 	private static final String EXT_STOP = "ext_stopwords";
-	
+	//汽车品牌
+	private static final String BRAND_DICT = "com/niuniu/analyzer/dic/niuniu_brand.dic";
+	//车型
+	private static final String MODEL_DICT = "com/niuniu/analyzer/dic/niuniu_model.dic";
+		
 	private Properties props;
 	/*
 	 * 是否使用smart方式分词
@@ -190,6 +194,16 @@ public class DefaultConfig implements Configuration{
 	public static void main(String[] args){
 		DefaultConfig defaultConfig = new DefaultConfig();
 		System.out.println(defaultConfig.getExtStopWordDictionarys());
+	}
+
+	@Override
+	public String getBrandDicionary() {
+		return BRAND_DICT;
+	}
+
+	@Override
+	public String getModelDicionary() {
+		return MODEL_DICT;
 	}
 
 

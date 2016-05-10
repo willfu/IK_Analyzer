@@ -34,6 +34,7 @@ import java.util.Set;
 
 import com.niuniu.analyzer.cfg.Configuration;
 import com.niuniu.analyzer.dic.Dictionary;
+import com.niuniu.analyzer.dic.Hit;
 
 /**
  * 
@@ -129,6 +130,24 @@ class AnalyzeContext {
 			}
 			i++;
 			pre = post;
+		}
+		return true;
+	}
+	
+	public boolean addNiuniuTag(){
+		if(results.size()==0)
+			return true;
+		for(int i=0;i<results.size();i++){
+			Lexeme cur = results.get(i);
+			Hit hit = Dictionary.getSingleton().matchInBrandDict(segmentBuff, cur.getBegin(), cur.getLength());
+			if(hit.isMatch()){
+				cur.setContentType(1);
+			}else{
+				hit = Dictionary.getSingleton().matchInModelDict(segmentBuff, cur.getBegin(), cur.getLength());
+				if(hit.isMatch()){
+					cur.setContentType(2);
+				}
+			}
 		}
 		return true;
 	}

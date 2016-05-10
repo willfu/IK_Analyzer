@@ -66,7 +66,18 @@ public interface Configuration {
 	 * @return String 量词词典路径
 	 */
 	public String getQuantifierDicionary();
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public String getBrandDicionary();
 
+	/**
+	 * 
+	 */
+	public String getModelDicionary();
+	
 	/**
 	 * 获取扩展字典配置路径
 	 * @return List<String> 相对类加载器的路径

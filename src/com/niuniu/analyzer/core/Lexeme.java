@@ -60,8 +60,26 @@ public class Lexeme implements Comparable<Lexeme>{
     private String lexemeText;
     //词元类型
     private int lexemeType;
+    //牛牛标签
+    private int contentType;
     
     
+	public int getContentType() {
+		return contentType;
+	}
+	
+	public String getContentTypeString() {
+		if(this.contentType==1)
+			return "BRAND";
+		if(this.contentType==2)
+			return "MODEL";
+		return "OTHERS";
+	}
+
+	public void setContentType(int contentType) {
+		this.contentType = contentType;
+	}
+
 	public Lexeme(int offset , int begin , int length , int lexemeType){
 		this.offset = offset;
 		this.begin = begin;
@@ -277,6 +295,7 @@ public class Lexeme implements Comparable<Lexeme>{
 		strbuf.append(this.getBeginPosition()).append("-").append(this.getEndPosition());
 		strbuf.append(" : ").append(this.lexemeText).append(" : \t");
 		strbuf.append(this.getLexemeTypeString());
+		strbuf.append(this.getContentTypeString());
 		return strbuf.toString();
 	}
 	

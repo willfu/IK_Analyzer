@@ -152,6 +152,7 @@ public final class IKSegmenter {
 			context.outputToResult();
 			//牛牛业务逻辑
 			context.postProcess(this.cfg.useMerge(), this.cfg.mergeSize());
+			context.addNiuniuTag();
 			//记录本次分词的缓冲区位移
 			context.markBufferOffset();			
 		}

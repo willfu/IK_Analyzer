@@ -59,6 +59,15 @@ public class Dictionary {
 	 */
 	private DictSegment _QuantifierDict;
 	
+	/*
+	 * 品牌词典
+	 */
+	private DictSegment _NiuniuBrandDict;
+	/*
+	 * 车型词典
+	 */
+	private DictSegment _NiuniuModelDict;
+	
 	/**
 	 * 配置对象
 	 */
@@ -68,7 +77,9 @@ public class Dictionary {
 		this.cfg = cfg;
 		this.loadMainDict();
 		this.loadStopWordDict();
-		this.loadQuantifierDict();
+		this.loadBranddDict();
+		this.loadModelDict();
+		//this.loadQuantifierDict();
 	}
 	
 	/**
@@ -139,6 +150,14 @@ public class Dictionary {
 	 */
 	public Hit matchInMainDict(char[] charArray){
 		return singleton._MainDict.match(charArray);
+	}
+	
+	public Hit matchInBrandDict(char[] charArray , int begin, int length){
+		return singleton._NiuniuBrandDict.match(charArray, begin, length);
+	}
+	
+	public Hit matchInModelDict(char[] charArray , int begin, int length){
+		return singleton._NiuniuModelDict.match(charArray, begin, length);
 	}
 	
 	/**
@@ -272,6 +291,82 @@ public class Dictionary {
 				}
 			}
 		}		
+	}
+	
+	/**
+	 * 加载品牌
+	 */
+	private void loadBranddDict(){
+		//建立一个主词典实例
+		_NiuniuBrandDict = new DictSegment((char)0);
+		//读取主词典文件
+        InputStream is = this.getClass().getClassLoader().getResourceAsStream(cfg.getBrandDicionary());
+        if(is == null){
+        	throw new RuntimeException("Brand Dictionary not found!!!");
+        }
+        
+		try {
+			BufferedReader br = new BufferedReader(new InputStreamReader(is , "UTF-8"), 512);
+			String theWord = null;
+			do {
+				theWord = br.readLine();
+				if (theWord != null && !"".equals(theWord.trim())) {
+					_NiuniuBrandDict.fillSegment(theWord.trim().toLowerCase().toCharArray());
+				}
+			} while (theWord != null);
+			
+		} catch (IOException ioe) {
+			System.err.println("Brand Dictionary loading exception.");
+			ioe.printStackTrace();
+			
+		}finally{
+			try {
+				if(is != null){
+                    is.close();
+                    is = null;
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	/**
+	 * 加载车型
+	 */
+	private void loadModelDict(){
+		//建立一个主词典实例
+		_NiuniuModelDict = new DictSegment((char)0);
+		//读取主词典文件
+        InputStream is = this.getClass().getClassLoader().getResourceAsStream(cfg.getModelDicionary());
+        if(is == null){
+        	throw new RuntimeException("Model Dictionary not found!!!");
+        }
+        
+		try {
+			BufferedReader br = new BufferedReader(new InputStreamReader(is , "UTF-8"), 512);
+			String theWord = null;
+			do {
+				theWord = br.readLine();
+				if (theWord != null && !"".equals(theWord.trim())) {
+					_NiuniuModelDict.fillSegment(theWord.trim().toLowerCase().toCharArray());
+				}
+			} while (theWord != null);
+			
+		} catch (IOException ioe) {
+			System.err.println("Model Dictionary loading exception.");
+			ioe.printStackTrace();
+			
+		}finally{
+			try {
+				if(is != null){
+                    is.close();
+                    is = null;
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	/**
