@@ -58,6 +58,8 @@ public class DefaultConfig implements Configuration{
 	private static final String BRAND_DICT = "com/niuniu/analyzer/dic/niuniu_brand.dic";
 	//车型
 	private static final String MODEL_DICT = "com/niuniu/analyzer/dic/niuniu_model.dic";
+	//规格
+	private static final String STANDARD_DICT = "com/niuniu/analyzer/dic/niuniu_standard.dic";
 		
 	private Properties props;
 	/*
@@ -205,6 +207,11 @@ public class DefaultConfig implements Configuration{
 	public String getModelDicionary() {
 		return MODEL_DICT;
 	}
-
+	
+	@Override
+	public String getStandardDicionary() {
+		return STANDARD_DICT;
+	}
+	
 
 }

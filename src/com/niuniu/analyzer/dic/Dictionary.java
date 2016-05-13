@@ -67,6 +67,10 @@ public class Dictionary {
 	 * 车型词典
 	 */
 	private DictSegment _NiuniuModelDict;
+	/*
+	 * 规格词典
+	 */
+	private DictSegment _NiuniuStandardDict;
 	
 	/**
 	 * 配置对象
@@ -79,6 +83,7 @@ public class Dictionary {
 		this.loadStopWordDict();
 		this.loadBranddDict();
 		this.loadModelDict();
+		this.loadStandardDict();
 		//this.loadQuantifierDict();
 	}
 	
@@ -158,6 +163,10 @@ public class Dictionary {
 	
 	public Hit matchInModelDict(char[] charArray , int begin, int length){
 		return singleton._NiuniuModelDict.match(charArray, begin, length);
+	}
+	
+	public Hit matchInStandardDict(char[] charArray , int begin, int length){
+		return singleton._NiuniuStandardDict.match(charArray, begin, length);
 	}
 	
 	/**
@@ -355,6 +364,44 @@ public class Dictionary {
 			
 		} catch (IOException ioe) {
 			System.err.println("Model Dictionary loading exception.");
+			ioe.printStackTrace();
+			
+		}finally{
+			try {
+				if(is != null){
+                    is.close();
+                    is = null;
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	/**
+	 * 加载规格
+	 */
+	private void loadStandardDict(){
+		//建立一个主词典实例
+		_NiuniuStandardDict = new DictSegment((char)0);
+		//读取主词典文件
+        InputStream is = this.getClass().getClassLoader().getResourceAsStream(cfg.getStandardDicionary());
+        if(is == null){
+        	throw new RuntimeException("Standard Dictionary not found!!!");
+        }
+        
+		try {
+			BufferedReader br = new BufferedReader(new InputStreamReader(is , "UTF-8"), 512);
+			String theWord = null;
+			do {
+				theWord = br.readLine();
+				if (theWord != null && !"".equals(theWord.trim())) {
+					_NiuniuStandardDict.fillSegment(theWord.trim().toLowerCase().toCharArray());
+				}
+			} while (theWord != null);
+			
+		} catch (IOException ioe) {
+			System.err.println("Standard Dictionary loading exception.");
 			ioe.printStackTrace();
 			
 		}finally{

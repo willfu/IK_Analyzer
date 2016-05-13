@@ -142,11 +142,17 @@ class AnalyzeContext {
 			Hit hit = Dictionary.getSingleton().matchInBrandDict(segmentBuff, cur.getBegin(), cur.getLength());
 			if(hit.isMatch()){
 				cur.setContentType(1);
-			}else{
-				hit = Dictionary.getSingleton().matchInModelDict(segmentBuff, cur.getBegin(), cur.getLength());
-				if(hit.isMatch()){
-					cur.setContentType(2);
-				}
+				continue;
+			}
+			hit = Dictionary.getSingleton().matchInModelDict(segmentBuff, cur.getBegin(), cur.getLength());
+			if(hit.isMatch()){
+				cur.setContentType(2);
+				continue;
+			}
+			hit = Dictionary.getSingleton().matchInStandardDict(segmentBuff, cur.getBegin(), cur.getLength());
+			if(hit.isMatch()){
+				cur.setContentType(3);
+				continue;
 			}
 		}
 		return true;

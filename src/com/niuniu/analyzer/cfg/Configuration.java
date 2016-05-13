@@ -78,6 +78,8 @@ public interface Configuration {
 	 */
 	public String getModelDicionary();
 	
+	public String getStandardDicionary();
+	
 	/**
 	 * 获取扩展字典配置路径
 	 * @return List<String> 相对类加载器的路径
