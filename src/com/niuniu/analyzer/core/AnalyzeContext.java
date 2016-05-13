@@ -134,6 +134,14 @@ class AnalyzeContext {
 		return true;
 	}
 	
+	private boolean isNumber(char[] chs, int begin, int length){
+		for(int i=0;i<length;i++){
+			if(chs[begin+i]<'0' || chs[begin+i]>'9' )
+				return false;
+		}
+		return true;
+	}
+	
 	public boolean addNiuniuTag(){
 		if(results.size()==0)
 			return true;
@@ -146,7 +154,11 @@ class AnalyzeContext {
 			}
 			hit = Dictionary.getSingleton().matchInModelDict(segmentBuff, cur.getBegin(), cur.getLength());
 			if(hit.isMatch()){
-				cur.setContentType(2);
+				if(isNumber(segmentBuff, cur.getBegin(), cur.getLength())){
+					cur.setContentType(4);
+				}else{
+					cur.setContentType(2);
+				}
 				continue;
 			}
 			hit = Dictionary.getSingleton().matchInStandardDict(segmentBuff, cur.getBegin(), cur.getLength());

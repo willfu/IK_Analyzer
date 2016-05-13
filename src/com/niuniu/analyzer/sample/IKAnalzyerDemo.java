@@ -55,7 +55,7 @@ public class IKAnalzyerDemo {
 		try {
 			//ts = analyzer.tokenStream("myfield", new StringReader("Lucene 是apache软件基金会4 jakarta项目组的一个子项目，是一个开放源代码的全文检索引擎工具包，即它不是一个完整的全文检索引擎，而是一个全文检索引擎的架构"));
 			//
-			ts = analyzer.tokenStream("myfield", new StringReader("美规路虎gt3系真不给力"));
+			ts = analyzer.tokenStream("myfield", new StringReader("美规路虎宝马740真不给力"));
 			//ts = analyzer.tokenStream("myfield", new StringReader("vt 520 x3"));
 			//获取词元位置属性
 		    OffsetAttribute  offset = ts.addAttribute(OffsetAttribute.class); 
