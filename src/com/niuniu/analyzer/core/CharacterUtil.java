@@ -77,6 +77,9 @@ class CharacterUtil {
 				
 			}
 		}
+		
+		if(input=='.')
+			return CHAR_ENGLISH;
 		//其他的不做处理的字符
 		return CHAR_USELESS;
 	}

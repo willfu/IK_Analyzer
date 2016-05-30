@@ -36,6 +36,8 @@ import com.niuniu.analyzer.cfg.Configuration;
 import com.niuniu.analyzer.dic.Dictionary;
 import com.niuniu.analyzer.dic.Hit;
 
+import sun.util.resources.CurrencyNames_be_BY;
+
 /**
  * 
  * 分词器上下文状态
@@ -153,8 +155,9 @@ class AnalyzeContext {
 				continue;
 			}
 			hit = Dictionary.getSingleton().matchInModelDict(segmentBuff, cur.getBegin(), cur.getLength());
+			boolean isNum = isNumber(segmentBuff, cur.getBegin(), cur.getLength());
 			if(hit.isMatch()){
-				if(isNumber(segmentBuff, cur.getBegin(), cur.getLength())){
+				if(isNum){
 					cur.setContentType(4);
 				}else{
 					cur.setContentType(2);
@@ -164,6 +167,11 @@ class AnalyzeContext {
 			hit = Dictionary.getSingleton().matchInStandardDict(segmentBuff, cur.getBegin(), cur.getLength());
 			if(hit.isMatch()){
 				cur.setContentType(3);
+				continue;
+			}
+			//需要精细化
+			if(isNum && cur.getLength()==4){
+				cur.setContentType(5);
 				continue;
 			}
 		}

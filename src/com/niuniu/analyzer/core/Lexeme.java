@@ -77,6 +77,8 @@ public class Lexeme implements Comparable<Lexeme>{
 			return "STANDARD";
 		if(this.contentType==4)
 			return "MODEL_PRICE";
+		if(this.contentType==5)
+			return "PRICE";
 		return "OTHERS";
 	}
 
