@@ -71,11 +71,21 @@ public class Dictionary {
 	 * 规格词典
 	 */
 	private DictSegment _NiuniuStandardDict;
+	/*
+	 * 款式词典
+	 */
+	private DictSegment _NiuniuStyleDict;
 	
 	/**
 	 * 配置对象
 	 */
 	private Configuration cfg;
+	
+	 
+	public enum NIUNIUTYPE {
+		BRAND, MODEL,STANDARD, MODEL_PRICE, NUMBER_3, NUMBER_4, NUMBER_F, PROVINCE, CITY,STYLE,OTHERS
+	}
+		
 	
 	private Dictionary(Configuration cfg){
 		this.cfg = cfg;
@@ -84,6 +94,7 @@ public class Dictionary {
 		this.loadBranddDict();
 		this.loadModelDict();
 		this.loadStandardDict();
+		this.loadStyleDict();
 		//this.loadQuantifierDict();
 	}
 	
@@ -169,6 +180,10 @@ public class Dictionary {
 		return singleton._NiuniuStandardDict.match(charArray, begin, length);
 	}
 	
+	public Hit matchInStyleDict(char[] charArray , int begin, int length){
+		return singleton._NiuniuStyleDict.match(charArray, begin, length);
+	}
+	
 	/**
 	 * 检索匹配主词典
 	 * @param charArray
@@ -233,7 +248,7 @@ public class Dictionary {
 			String theWord = null;
 			do {
 				theWord = br.readLine();
-				if (theWord != null && !"".equals(theWord.trim())) {
+				if (theWord != null && !"".equals(theWord.trim()) && theWord.startsWith("#")==false) {
 					_MainDict.fillSegment(theWord.trim().toLowerCase().toCharArray());
 				}
 			} while (theWord != null);
@@ -366,6 +381,41 @@ public class Dictionary {
 			System.err.println("Model Dictionary loading exception.");
 			ioe.printStackTrace();
 			
+		}finally{
+			try {
+				if(is != null){
+                    is.close();
+                    is = null;
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	/**
+	 * 加载款式
+	 */
+	private void loadStyleDict(){
+		_NiuniuStyleDict = new DictSegment((char)0);
+        InputStream is = this.getClass().getClassLoader().getResourceAsStream(cfg.getStyleDicionary());
+        if(is == null){
+        	throw new RuntimeException("Style Dictionary not found!!!");
+        }
+        
+		try {
+			BufferedReader br = new BufferedReader(new InputStreamReader(is , "UTF-8"), 512);
+			String theWord = null;
+			do {
+				theWord = br.readLine();
+				if (theWord != null && !"".equals(theWord.trim())) {
+					_NiuniuStyleDict.fillSegment(theWord.trim().toLowerCase().toCharArray());
+				}
+			} while (theWord != null);
+			
+		} catch (IOException ioe) {
+			System.err.println("Style Dictionary loading exception.");
+			ioe.printStackTrace();
 		}finally{
 			try {
 				if(is != null){

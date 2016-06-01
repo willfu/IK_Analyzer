@@ -55,7 +55,8 @@ public class IKAnalzyerDemo {
 		try {
 			//ts = analyzer.tokenStream("myfield", new StringReader("Lucene 是apache软件基金会4 jakarta项目组的一个子项目，是一个开放源代码的全文检索引擎工具包，即它不是一个完整的全文检索引擎，而是一个全文检索引擎的架构"));
 			//
-			ts = analyzer.tokenStream("myfield", new StringReader("揽行3.0汽油*很好"));
+			ts = analyzer.tokenStream("myfield", new StringReader("丰田黑顶棚320li39.96国产"));
+			//ts = analyzer.tokenStream("myfield", new StringReader("揽胜行政3.0汽油39.96很好320却不如320li和2010款以及宝马16款"));
 			//ts = analyzer.tokenStream("myfield", new StringReader("vt 520 x3"));
 			//获取词元位置属性
 		    OffsetAttribute  offset = ts.addAttribute(OffsetAttribute.class); 

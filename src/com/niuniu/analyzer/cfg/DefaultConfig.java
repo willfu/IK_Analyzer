@@ -60,6 +60,8 @@ public class DefaultConfig implements Configuration{
 	private static final String MODEL_DICT = "com/niuniu/analyzer/dic/niuniu_model.dic";
 	//规格
 	private static final String STANDARD_DICT = "com/niuniu/analyzer/dic/niuniu_standard.dic";
+	//款式
+	private static final String STYLE_DICT = "com/niuniu/analyzer/dic/niuniu_style.dic";
 		
 	private Properties props;
 	/*
@@ -211,6 +213,11 @@ public class DefaultConfig implements Configuration{
 	@Override
 	public String getStandardDicionary() {
 		return STANDARD_DICT;
+	}
+
+	@Override
+	public String getStyleDicionary() {
+		return STYLE_DICT;
 	}
 	
 

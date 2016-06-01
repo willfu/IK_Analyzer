@@ -79,7 +79,7 @@ class CharacterUtil {
 		}
 		
 		if(input=='.')
-			return CHAR_ENGLISH;
+			return CHAR_ARABIC;
 		//其他的不做处理的字符
 		return CHAR_USELESS;
 	}

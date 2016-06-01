@@ -32,9 +32,12 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.niuniu.analyzer.cfg.Configuration;
 import com.niuniu.analyzer.dic.Dictionary;
 import com.niuniu.analyzer.dic.Hit;
+import com.sun.jndi.toolkit.url.Uri;
 
 import sun.util.resources.CurrencyNames_be_BY;
 
@@ -79,7 +82,7 @@ class AnalyzeContext {
     
 	//分词器配置项
 	private Configuration cfg;
-    
+   
 	//后处理逻辑，用于处理业务
 	public boolean postProcess(int useMerge, int mergeSize){
 		/*
@@ -92,8 +95,30 @@ class AnalyzeContext {
 			return true;
 		Lexeme pre = results.get(0);
 		Lexeme post = null;
+		String pre_str = new String(segmentBuff,pre.getBegin(),pre.getLength());
+		String post_str = null;
+		boolean pre_numeric = StringUtils.isNumeric(pre_str);
+		boolean pre_alpha = StringUtils.isAlpha(pre_str);
+		if(pre_numeric){
+			pre.setLexemeType(2);
+		}
+		if(pre_alpha){
+			pre.setLexemeType(1);
+		}
+		boolean post_numeric = false;
+		boolean post_alpha = false;
 		for(int i=1;i<results.size();){
 			post = results.get(i);
+			post_str = new String(segmentBuff, post.getBegin(), post.getLength());
+			post_numeric = StringUtils.isNumeric(post_str);
+			//TODO WRONG!
+			post_alpha = StringUtils.isAlpha(post_str);
+			if(post_numeric){
+				post.setLexemeType(2);
+			}
+			if(post_alpha){
+				post.setLexemeType(1);
+			}
 			if(useMerge==2){
 				// bmw123 => bmw 123 bmw123
 				if((pre.getLength()<mergeSize || post.getLength()<mergeSize)
@@ -132,46 +157,109 @@ class AnalyzeContext {
 			}
 			i++;
 			pre = post;
+			pre_str = post_str;
+			pre_alpha = post_alpha;
+			pre_numeric = post_numeric;
 		}
 		return true;
 	}
 	
-	private boolean isNumber(char[] chs, int begin, int length){
+	private int isNumber(char[] chs, int begin, int length){
+		int dot = -1;
+		int idx = 0;
 		for(int i=0;i<length;i++){
-			if(chs[begin+i]<'0' || chs[begin+i]>'9' )
-				return false;
+			idx = begin + i;
+			if(chs[idx]=='.'){
+				if(dot>-1)
+					return -1;
+				else{
+					dot = i;
+					continue;
+				}
+			}
+			if(chs[idx]<'0' || chs[idx]>'9' )
+				return -1;
+			
 		}
-		return true;
+		if(dot==(length-1))
+			return -2;
+		return dot==-1?1:2;//dot==-1 没小数点, dot!=-1 有小数点
 	}
-	
+	//TODO
 	public boolean addNiuniuTag(){
 		if(results.size()==0)
 			return true;
 		for(int i=0;i<results.size();i++){
 			Lexeme cur = results.get(i);
-			Hit hit = Dictionary.getSingleton().matchInBrandDict(segmentBuff, cur.getBegin(), cur.getLength());
-			if(hit.isMatch()){
-				cur.setContentType(1);
+			
+			//BRAND
+			Hit brand_hit = Dictionary.getSingleton().matchInBrandDict(segmentBuff, cur.getBegin(), cur.getLength());
+			Hit model_hit = Dictionary.getSingleton().matchInModelDict(segmentBuff, cur.getBegin(), cur.getLength());
+			Hit standard_hit = Dictionary.getSingleton().matchInStandardDict(segmentBuff, cur.getBegin(), cur.getLength());
+			Hit style_hit = Dictionary.getSingleton().matchInStyleDict(segmentBuff, cur.getBegin(), cur.getLength());
+			int isNum = isNumber(segmentBuff, cur.getBegin(), cur.getLength());
+			
+			if(brand_hit.isMatch()){
+				cur.setContentType(1); // BRAND
 				continue;
 			}
-			hit = Dictionary.getSingleton().matchInModelDict(segmentBuff, cur.getBegin(), cur.getLength());
-			boolean isNum = isNumber(segmentBuff, cur.getBegin(), cur.getLength());
-			if(hit.isMatch()){
-				if(isNum){
-					cur.setContentType(4);
+			if(standard_hit.isMatch()){
+				cur.setContentType(3);//STANDARD
+				continue;
+			}
+			
+			if(model_hit.isMatch() && style_hit.isMatch()){
+				if(isNum==1){
+					cur.setContentType(5);// MODEL OR STYLE OR base_car_NO
 				}else{
-					cur.setContentType(2);
+					cur.setContentType(6);// MODEL OR STYLE
 				}
 				continue;
 			}
-			hit = Dictionary.getSingleton().matchInStandardDict(segmentBuff, cur.getBegin(), cur.getLength());
-			if(hit.isMatch()){
-				cur.setContentType(3);
+			
+			if(model_hit.isMatch()){
+				if(isNum==1){
+					cur.setContentType(4);// MODEL or base_car_NO
+				}else{
+					cur.setContentType(2);// MODEL
+				}
+				continue;
+			}
+			
+			if(style_hit.isMatch()){
+				if(isNum==1){
+					cur.setContentType(7);// STYLE or base_car_NO
+				}else{
+					cur.setContentType(9);// STYLE
+				}
+			}
+			
+			if(cur.getLength()==1 && isNum==1){//token is 3或者4等单个数字字符，有可能是model或者style
+				cur.setContentType(6);// MODEL or STYLE
+			}
+			
+			if(isNum==2){//浮点数
+				if(cur.getLength()>3){
+					cur.setContentType(8);// float FPRICE
+				}else{
+					// 2.0 3.0等数字，去style中查找
+					cur.setContentType(9);// STYLE
+				}
 				continue;
 			}
 			//需要精细化
-			if(isNum && cur.getLength()==4){
-				cur.setContentType(5);
+			if(isNum==1){
+				/*
+				if(cur.getLength()==4){
+					cur.setContentType(6);// base_car_NO or STYLE
+					continue;
+				}
+				if(cur.getLength()==3){
+					cur.setContentType(5);//NUMBER_3 去base_car_style和base_car_NO查询
+					continue;
+				}
+				*/
+				cur.setContentType(7);// base_car_NO or STYLE
 				continue;
 			}
 		}
