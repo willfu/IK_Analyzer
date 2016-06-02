@@ -47,108 +47,97 @@ import sun.util.resources.CurrencyNames_be_BY;
  * 
  */
 class AnalyzeContext {
-	
-	//默认缓冲区大小
+
+	// 默认缓冲区大小
 	private static final int BUFF_SIZE = 4096;
-	//缓冲区耗尽的临界值
-	private static final int BUFF_EXHAUST_CRITICAL = 100;	
-	
- 
-	//字符窜读取缓冲
-    private char[] segmentBuff;
-    //字符类型数组
-    private int[] charTypes;
-    
-    
-    //记录Reader内已分析的字串总长度
-    //在分多段分析词元时，该变量累计当前的segmentBuff相对于reader起始位置的位移
-	private int buffOffset;	
-    //当前缓冲区位置指针
-    private int cursor;
-    //最近一次读入的,可处理的字串长度
+	// 缓冲区耗尽的临界值
+	private static final int BUFF_EXHAUST_CRITICAL = 100;
+
+	// 字符窜读取缓冲
+	private char[] segmentBuff;
+	// 字符类型数组
+	private int[] charTypes;
+
+	// 记录Reader内已分析的字串总长度
+	// 在分多段分析词元时，该变量累计当前的segmentBuff相对于reader起始位置的位移
+	private int buffOffset;
+	// 当前缓冲区位置指针
+	private int cursor;
+	// 最近一次读入的,可处理的字串长度
 	private int available;
 
-	
-	//子分词器锁
-    //该集合非空，说明有子分词器在占用segmentBuff
-    private Set<String> buffLocker;
-    
-    //原始分词结果集合，未经歧义处理
-    private QuickSortSet orgLexemes;    
-    //LexemePath位置索引表
-    private Map<Integer , LexemePath> pathMap;    
-    //最终分词结果集
-    private LinkedList<Lexeme> results;
-    
-	//分词器配置项
+	// 子分词器锁
+	// 该集合非空，说明有子分词器在占用segmentBuff
+	private Set<String> buffLocker;
+
+	// 原始分词结果集合，未经歧义处理
+	private QuickSortSet orgLexemes;
+	// LexemePath位置索引表
+	private Map<Integer, LexemePath> pathMap;
+	// 最终分词结果集
+	private LinkedList<Lexeme> results;
+
+	// 分词器配置项
 	private Configuration cfg;
-   
-	//后处理逻辑，用于处理业务
-	public boolean postProcess(int useMerge, int mergeSize){
+
+	private boolean isValidAlpha(String str) {
+		if (str.length() > 2)
+			return false;
+		for (int i = 0; i < str.length(); i++) {
+			if (str.charAt(i) > 'z' || str.charAt(i) < 'a')
+				return false;
+		}
+		return true;
+	}
+
+	// 后处理逻辑，用于处理业务
+	public boolean postProcess(int useMerge, int mergeSize) {
 		/*
-		 * useMerge=false:
-		 * 	bmw740li => bmw 740 li
-		 * useMerge=true:
-		 * 	bmw740li => bmw 740 li bmw740 740li
+		 * useMerge=false: bmw740li => bmw 740 li useMerge=true: bmw740li => bmw
+		 * 740 li bmw740 740li
 		 */
-		if(results.size()==0)
+		if (results.size() == 0)
 			return true;
 		Lexeme pre = results.get(0);
 		Lexeme post = null;
-		String pre_str = new String(segmentBuff,pre.getBegin(),pre.getLength());
+		String pre_str = new String(segmentBuff, pre.getBegin(), pre.getLength());
 		String post_str = null;
 		boolean pre_numeric = StringUtils.isNumeric(pre_str);
-		boolean pre_alpha = StringUtils.isAlpha(pre_str);
-		if(pre_numeric){
-			pre.setLexemeType(2);
-		}
-		if(pre_alpha){
-			pre.setLexemeType(1);
-		}
+		boolean pre_alpha = isValidAlpha(pre_str);
+
 		boolean post_numeric = false;
 		boolean post_alpha = false;
-		for(int i=1;i<results.size();){
+		for (int i = 1; i < results.size();) {
 			post = results.get(i);
 			post_str = new String(segmentBuff, post.getBegin(), post.getLength());
 			post_numeric = StringUtils.isNumeric(post_str);
-			//TODO WRONG!
-			post_alpha = StringUtils.isAlpha(post_str);
-			if(post_numeric){
-				post.setLexemeType(2);
-			}
-			if(post_alpha){
-				post.setLexemeType(1);
-			}
-			if(useMerge==2){
-				// bmw123 => bmw 123 bmw123
-				if((pre.getLength()<mergeSize || post.getLength()<mergeSize)
-						&& (pre.getLexemeType()<3 && post.getLexemeType()<3)){
+			post_alpha = isValidAlpha(post_str);
+
+			if (pre.getLength() < mergeSize && post.getLength() < mergeSize && (pre_alpha || pre_numeric)
+					&& (post_alpha || post_numeric)) {
+				if (useMerge == 2) {
 					Lexeme target = new Lexeme(pre.getOffset(), pre.getBegin(), pre.getLength(), pre.getLexemeType());
-					if(target.append(post, 3)){
+					if (target.append(post, 4)) {
 						results.addLast(target);
 					}
-				}
-			}else if(useMerge==1){
-				//only merge
-				//bmw123 => bmw123
-				if((pre.getLength()<mergeSize || post.getLength()<mergeSize)
-						&& (pre.getLexemeType()<3 && post.getLexemeType()<3)){
-					if(pre.append(post, 3)){
+				} else if (useMerge == 1) {
+					if (pre.append(post, 4)) {
 						results.remove(i);
 						continue;
 					}
 				}
-			} 
-			
-			if(pre.getLexemeType()==2 && post.getLength()==1 ){
+			}
+
+			if (post.getLength() == 1 && (pre_numeric || pre_alpha)) {
 				char text = segmentBuff[post.getBegin()];
-				if(text=='系' || text=='款' || text=='级' ){
-					if(useMerge==2){
-						Lexeme target = new Lexeme(pre.getOffset(), pre.getBegin(), pre.getLength(), pre.getLexemeType());
-						if(target.append(post, 4))
+				if (text == '系' || text == '款' || text == '级') {
+					if (useMerge == 2) {
+						Lexeme target = new Lexeme(pre.getOffset(), pre.getBegin(), pre.getLength(),
+								pre.getLexemeType());
+						if (target.append(post, 4))
 							results.addLast(target);
-					}else if(useMerge==1){
-						if(pre.append(post, 4)){
+					} else if (useMerge == 1) {
+						if (pre.append(post, 4)) {
 							results.remove(i);
 							continue;
 						}
@@ -163,418 +152,416 @@ class AnalyzeContext {
 		}
 		return true;
 	}
-	
-	private int isNumber(char[] chs, int begin, int length){
+
+	private int isNumber(char[] chs, int begin, int length) {
 		int dot = -1;
 		int idx = 0;
-		for(int i=0;i<length;i++){
+		for (int i = 0; i < length; i++) {
 			idx = begin + i;
-			if(chs[idx]=='.'){
-				if(dot>-1)
+			if (chs[idx] == '.') {
+				if (dot > -1)
 					return -1;
-				else{
+				else {
 					dot = i;
 					continue;
 				}
 			}
-			if(chs[idx]<'0' || chs[idx]>'9' )
+			if (chs[idx] < '0' || chs[idx] > '9')
 				return -1;
-			
+
 		}
-		if(dot==(length-1))
+		if (dot == (length - 1))
 			return -2;
-		return dot==-1?1:2;//dot==-1 没小数点, dot!=-1 有小数点
+		return dot == -1 ? 1 : 2;// dot==-1 没小数点, dot!=-1 有小数点
 	}
-	//TODO
-	public boolean addNiuniuTag(){
-		if(results.size()==0)
+
+	// TODO
+	public boolean addNiuniuTag() {
+		if (results.size() == 0)
 			return true;
-		for(int i=0;i<results.size();i++){
+		for (int i = 0; i < results.size(); i++) {
 			Lexeme cur = results.get(i);
-			
-			//BRAND
+
+			// BRAND
 			Hit brand_hit = Dictionary.getSingleton().matchInBrandDict(segmentBuff, cur.getBegin(), cur.getLength());
 			Hit model_hit = Dictionary.getSingleton().matchInModelDict(segmentBuff, cur.getBegin(), cur.getLength());
-			Hit standard_hit = Dictionary.getSingleton().matchInStandardDict(segmentBuff, cur.getBegin(), cur.getLength());
+			Hit standard_hit = Dictionary.getSingleton().matchInStandardDict(segmentBuff, cur.getBegin(),
+					cur.getLength());
 			Hit style_hit = Dictionary.getSingleton().matchInStyleDict(segmentBuff, cur.getBegin(), cur.getLength());
 			int isNum = isNumber(segmentBuff, cur.getBegin(), cur.getLength());
-			
-			if(brand_hit.isMatch()){
+
+			if (brand_hit.isMatch()) {
 				cur.setContentType(1); // BRAND
 				continue;
 			}
-			if(standard_hit.isMatch()){
-				cur.setContentType(3);//STANDARD
+			if (standard_hit.isMatch()) {
+				cur.setContentType(3);// STANDARD
 				continue;
 			}
-			
-			if(model_hit.isMatch() && style_hit.isMatch()){
-				if(isNum==1){
+
+			if (model_hit.isMatch() && style_hit.isMatch()) {
+				if (isNum == 1) {
 					cur.setContentType(5);// MODEL OR STYLE OR base_car_NO
-				}else{
+				} else {
 					cur.setContentType(6);// MODEL OR STYLE
 				}
 				continue;
 			}
-			
-			if(model_hit.isMatch()){
-				if(isNum==1){
+
+			if (model_hit.isMatch()) {
+				if (isNum == 1) {
 					cur.setContentType(4);// MODEL or base_car_NO
-				}else{
+				} else {
 					cur.setContentType(2);// MODEL
 				}
 				continue;
 			}
-			
-			if(style_hit.isMatch()){
-				if(isNum==1){
+
+			if (style_hit.isMatch()) {
+				if (isNum == 1) {
 					cur.setContentType(7);// STYLE or base_car_NO
-				}else{
+				} else {
 					cur.setContentType(9);// STYLE
 				}
 			}
-			
-			if(cur.getLength()==1 && isNum==1){//token is 3或者4等单个数字字符，有可能是model或者style
+
+			if (cur.getLength() == 1 && isNum == 1) {// token is
+														// 3或者4等单个数字字符，有可能是model或者style
 				cur.setContentType(6);// MODEL or STYLE
 			}
-			
-			if(isNum==2){//浮点数
-				if(cur.getLength()>3){
+
+			if (isNum == 2) {// 浮点数
+				if (cur.getLength() > 3) {
 					cur.setContentType(8);// float FPRICE
-				}else{
+				} else {
 					// 2.0 3.0等数字，去style中查找
 					cur.setContentType(9);// STYLE
 				}
 				continue;
 			}
-			//需要精细化
-			if(isNum==1){
+			// 需要精细化
+			if (isNum == 1) {
 				/*
-				if(cur.getLength()==4){
-					cur.setContentType(6);// base_car_NO or STYLE
-					continue;
-				}
-				if(cur.getLength()==3){
-					cur.setContentType(5);//NUMBER_3 去base_car_style和base_car_NO查询
-					continue;
-				}
-				*/
+				 * if(cur.getLength()==4){ cur.setContentType(6);// base_car_NO
+				 * or STYLE continue; } if(cur.getLength()==3){
+				 * cur.setContentType(5);//NUMBER_3
+				 * 去base_car_style和base_car_NO查询 continue; }
+				 */
 				cur.setContentType(7);// base_car_NO or STYLE
 				continue;
 			}
 		}
 		return true;
 	}
-	
-    public AnalyzeContext(Configuration cfg){
-    	this.cfg = cfg;
-    	this.segmentBuff = new char[BUFF_SIZE];
-    	this.charTypes = new int[BUFF_SIZE];
-    	this.buffLocker = new HashSet<String>();
-    	this.orgLexemes = new QuickSortSet();
-    	this.pathMap = new HashMap<Integer , LexemePath>();    	
-    	this.results = new LinkedList<Lexeme>();
-    }
-    
-    int getCursor(){
-    	return this.cursor;
-    }
-//    
-//    void setCursor(int cursor){
-//    	this.cursor = cursor;
-//    }
-    
-    char[] getSegmentBuff(){
-    	return this.segmentBuff;
-    }
-    
-    char getCurrentChar(){
-    	return this.segmentBuff[this.cursor];
-    }
-    
-    int getCurrentCharType(){
-    	return this.charTypes[this.cursor];
-    }
-    
-    int getBufferOffset(){
-    	return this.buffOffset;
-    }
-	
-    /**
-     * 根据context的上下文情况，填充segmentBuff 
-     * @param reader
-     * @return 返回待分析的（有效的）字串长度
-     * @throws IOException 
-     */
-    int fillBuffer(Reader reader) throws IOException{
-    	int readCount = 0;
-    	if(this.buffOffset == 0){
-    		//首次读取reader
-    		readCount = reader.read(segmentBuff);
-    	}else{
-    		int offset = this.available - this.cursor;
-    		if(offset > 0){
-    			//最近一次读取的>最近一次处理的，将未处理的字串拷贝到segmentBuff头部
-    			System.arraycopy(this.segmentBuff , this.cursor , this.segmentBuff , 0 , offset);
-    			readCount = offset;
-    		}
-    		//继续读取reader ，以onceReadIn - onceAnalyzed为起始位置，继续填充segmentBuff剩余的部分
-    		readCount += reader.read(this.segmentBuff , offset , BUFF_SIZE - offset);
-    	}            	
-    	//记录最后一次从Reader中读入的可用字符长度
-    	this.available = readCount;
-    	//重置当前指针
-    	this.cursor = 0;
-    	return readCount;
-    }
 
-    /**
-     * 初始化buff指针，处理第一个字符
-     */
-    void initCursor(){
-    	this.cursor = 0;
-    	this.segmentBuff[this.cursor] = CharacterUtil.regularize(this.segmentBuff[this.cursor]);
-    	this.charTypes[this.cursor] = CharacterUtil.identifyCharType(this.segmentBuff[this.cursor]);
-    }
-    
-    /**
-     * 指针+1
-     * 成功返回 true； 指针已经到了buff尾部，不能前进，返回false
-     * 并处理当前字符
-     */
-    boolean moveCursor(){
-    	if(this.cursor < this.available - 1){
-    		this.cursor++;
-        	this.segmentBuff[this.cursor] = CharacterUtil.regularize(this.segmentBuff[this.cursor]);
-        	this.charTypes[this.cursor] = CharacterUtil.identifyCharType(this.segmentBuff[this.cursor]);
-    		return true;
-    	}else{
-    		return false;
-    	}
-    }
-	
-    /**
-     * 设置当前segmentBuff为锁定状态
-     * 加入占用segmentBuff的子分词器名称，表示占用segmentBuff
-     * @param segmenterName
-     */
-	void lockBuffer(String segmenterName){
-		this.buffLocker.add(segmenterName);
+	public AnalyzeContext(Configuration cfg) {
+		this.cfg = cfg;
+		this.segmentBuff = new char[BUFF_SIZE];
+		this.charTypes = new int[BUFF_SIZE];
+		this.buffLocker = new HashSet<String>();
+		this.orgLexemes = new QuickSortSet();
+		this.pathMap = new HashMap<Integer, LexemePath>();
+		this.results = new LinkedList<Lexeme>();
 	}
-	
+
+	int getCursor() {
+		return this.cursor;
+	}
+	//
+	// void setCursor(int cursor){
+	// this.cursor = cursor;
+	// }
+
+	char[] getSegmentBuff() {
+		return this.segmentBuff;
+	}
+
+	char getCurrentChar() {
+		return this.segmentBuff[this.cursor];
+	}
+
+	int getCurrentCharType() {
+		return this.charTypes[this.cursor];
+	}
+
+	int getBufferOffset() {
+		return this.buffOffset;
+	}
+
 	/**
-	 * 移除指定的子分词器名，释放对segmentBuff的占用
+	 * 根据context的上下文情况，填充segmentBuff
+	 * 
+	 * @param reader
+	 * @return 返回待分析的（有效的）字串长度
+	 * @throws IOException
+	 */
+	int fillBuffer(Reader reader) throws IOException {
+		int readCount = 0;
+		if (this.buffOffset == 0) {
+			// 首次读取reader
+			readCount = reader.read(segmentBuff);
+		} else {
+			int offset = this.available - this.cursor;
+			if (offset > 0) {
+				// 最近一次读取的>最近一次处理的，将未处理的字串拷贝到segmentBuff头部
+				System.arraycopy(this.segmentBuff, this.cursor, this.segmentBuff, 0, offset);
+				readCount = offset;
+			}
+			// 继续读取reader ，以onceReadIn - onceAnalyzed为起始位置，继续填充segmentBuff剩余的部分
+			readCount += reader.read(this.segmentBuff, offset, BUFF_SIZE - offset);
+		}
+		// 记录最后一次从Reader中读入的可用字符长度
+		this.available = readCount;
+		// 重置当前指针
+		this.cursor = 0;
+		return readCount;
+	}
+
+	/**
+	 * 初始化buff指针，处理第一个字符
+	 */
+	void initCursor() {
+		this.cursor = 0;
+		this.segmentBuff[this.cursor] = CharacterUtil.regularize(this.segmentBuff[this.cursor]);
+		this.charTypes[this.cursor] = CharacterUtil.identifyCharType(this.segmentBuff[this.cursor]);
+	}
+
+	/**
+	 * 指针+1 成功返回 true； 指针已经到了buff尾部，不能前进，返回false 并处理当前字符
+	 */
+	boolean moveCursor() {
+		if (this.cursor < this.available - 1) {
+			this.cursor++;
+			this.segmentBuff[this.cursor] = CharacterUtil.regularize(this.segmentBuff[this.cursor]);
+			this.charTypes[this.cursor] = CharacterUtil.identifyCharType(this.segmentBuff[this.cursor]);
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * 设置当前segmentBuff为锁定状态 加入占用segmentBuff的子分词器名称，表示占用segmentBuff
+	 * 
 	 * @param segmenterName
 	 */
-	void unlockBuffer(String segmenterName){
+	void lockBuffer(String segmenterName) {
+		this.buffLocker.add(segmenterName);
+	}
+
+	/**
+	 * 移除指定的子分词器名，释放对segmentBuff的占用
+	 * 
+	 * @param segmenterName
+	 */
+	void unlockBuffer(String segmenterName) {
 		this.buffLocker.remove(segmenterName);
 	}
-	
+
 	/**
-	 * 只要buffLocker中存在segmenterName
-	 * 则buffer被锁定
+	 * 只要buffLocker中存在segmenterName 则buffer被锁定
+	 * 
 	 * @return boolean 缓冲去是否被锁定
 	 */
-	boolean isBufferLocked(){
+	boolean isBufferLocked() {
 		return this.buffLocker.size() > 0;
 	}
 
 	/**
-	 * 判断当前segmentBuff是否已经用完
-	 * 当前执针cursor移至segmentBuff末端this.available - 1
+	 * 判断当前segmentBuff是否已经用完 当前执针cursor移至segmentBuff末端this.available - 1
+	 * 
 	 * @return
 	 */
-	boolean isBufferConsumed(){
+	boolean isBufferConsumed() {
 		return this.cursor == this.available - 1;
 	}
-	
+
 	/**
 	 * 判断segmentBuff是否需要读取新数据
 	 * 
-	 * 满足一下条件时，
-	 * 1.available == BUFF_SIZE 表示buffer满载
-	 * 2.buffIndex < available - 1 && buffIndex > available - BUFF_EXHAUST_CRITICAL表示当前指针处于临界区内
+	 * 满足一下条件时， 1.available == BUFF_SIZE 表示buffer满载 2.buffIndex < available - 1
+	 * && buffIndex > available - BUFF_EXHAUST_CRITICAL表示当前指针处于临界区内
 	 * 3.!context.isBufferLocked()表示没有segmenter在占用buffer
 	 * 要中断当前循环（buffer要进行移位，并再读取数据的操作）
+	 * 
 	 * @return
 	 */
-	boolean needRefillBuffer(){
-		return this.available == BUFF_SIZE 
-			&& this.cursor < this.available - 1   
-			&& this.cursor  > this.available - BUFF_EXHAUST_CRITICAL
-			&& !this.isBufferLocked();
+	boolean needRefillBuffer() {
+		return this.available == BUFF_SIZE && this.cursor < this.available - 1
+				&& this.cursor > this.available - BUFF_EXHAUST_CRITICAL && !this.isBufferLocked();
 	}
-	
+
 	/**
 	 * 累计当前的segmentBuff相对于reader起始位置的位移
 	 */
-	void markBufferOffset(){
+	void markBufferOffset() {
 		this.buffOffset += this.cursor;
 	}
-	
+
 	/**
 	 * 向分词结果集添加词元
+	 * 
 	 * @param lexeme
 	 */
-	void addLexeme(Lexeme lexeme){
+	void addLexeme(Lexeme lexeme) {
 		this.orgLexemes.addLexeme(lexeme);
 	}
-	
+
 	/**
-	 * 添加分词结果路径
-	 * 路径起始位置 ---> 路径 映射表
+	 * 添加分词结果路径 路径起始位置 ---> 路径 映射表
+	 * 
 	 * @param path
 	 */
-	void addLexemePath(LexemePath path){
-		if(path != null){
+	void addLexemePath(LexemePath path) {
+		if (path != null) {
 			this.pathMap.put(path.getPathBegin(), path);
 		}
 	}
-	
-	
+
 	/**
 	 * 返回原始分词结果
+	 * 
 	 * @return
 	 */
-	QuickSortSet getOrgLexemes(){
+	QuickSortSet getOrgLexemes() {
 		return this.orgLexemes;
 	}
-	
+
 	/**
-	 * 推送分词结果到结果集合
-	 * 1.从buff头部遍历到this.cursor已处理位置
-	 * 2.将map中存在的分词结果推入results
+	 * 推送分词结果到结果集合 1.从buff头部遍历到this.cursor已处理位置 2.将map中存在的分词结果推入results
 	 * 3.将map中不存在的CJDK字符以单字方式推入results
 	 */
-	void outputToResult(){
+	void outputToResult() {
 		int index = 0;
-		for( ; index <= this.cursor ;){
-			//跳过非CJK字符
-			if(CharacterUtil.CHAR_USELESS == this.charTypes[index]){
+		for (; index <= this.cursor;) {
+			// 跳过非CJK字符
+			if (CharacterUtil.CHAR_USELESS == this.charTypes[index]) {
 				index++;
 				continue;
 			}
-			//从pathMap找出对应index位置的LexemePath
+			// 从pathMap找出对应index位置的LexemePath
 			LexemePath path = this.pathMap.get(index);
-			if(path != null){
-				//输出LexemePath中的lexeme到results集合
+			if (path != null) {
+				// 输出LexemePath中的lexeme到results集合
 				Lexeme l = path.pollFirst();
-				while(l != null){
+				while (l != null) {
 					this.results.add(l);
-					//将index移至lexeme后
-					index = l.getBegin() + l.getLength();					
+					// 将index移至lexeme后
+					index = l.getBegin() + l.getLength();
 					l = path.pollFirst();
-					if(l != null){
-						//输出path内部，词元间遗漏的单字
-						for(;index < l.getBegin();index++){
+					if (l != null) {
+						// 输出path内部，词元间遗漏的单字
+						for (; index < l.getBegin(); index++) {
 							this.outputSingleCJK(index);
 						}
 					}
 				}
-			}else{//pathMap中找不到index对应的LexemePath
-				//单字输出
+			} else {// pathMap中找不到index对应的LexemePath
+					// 单字输出
 				this.outputSingleCJK(index);
 				index++;
 			}
 		}
-		//清空当前的Map
+		// 清空当前的Map
 		this.pathMap.clear();
 	}
-	
+
 	/**
 	 * 对CJK字符进行单字输出
+	 * 
 	 * @param index
 	 */
-	private void outputSingleCJK(int index){
-		if(CharacterUtil.CHAR_CHINESE == this.charTypes[index]){			
-			Lexeme singleCharLexeme = new Lexeme(this.buffOffset , index , 1 , Lexeme.TYPE_CNCHAR);
+	private void outputSingleCJK(int index) {
+		if (CharacterUtil.CHAR_CHINESE == this.charTypes[index]) {
+			Lexeme singleCharLexeme = new Lexeme(this.buffOffset, index, 1, Lexeme.TYPE_CNCHAR);
 			this.results.add(singleCharLexeme);
-		}else if(CharacterUtil.CHAR_OTHER_CJK == this.charTypes[index]){
-			Lexeme singleCharLexeme = new Lexeme(this.buffOffset , index , 1 , Lexeme.TYPE_OTHER_CJK);
+		} else if (CharacterUtil.CHAR_OTHER_CJK == this.charTypes[index]) {
+			Lexeme singleCharLexeme = new Lexeme(this.buffOffset, index, 1, Lexeme.TYPE_OTHER_CJK);
 			this.results.add(singleCharLexeme);
 		}
 	}
-		
+
 	/**
-	 * 返回lexeme 
+	 * 返回lexeme
 	 * 
 	 * 同时处理合并
+	 * 
 	 * @return
 	 */
-	Lexeme getNextLexeme(){
-		//从结果集取出，并移除第一个Lexme
+	Lexeme getNextLexeme() {
+		// 从结果集取出，并移除第一个Lexme
 		Lexeme result = this.results.pollFirst();
-		while(result != null){
-    		//数量词合并
-    		this.compound(result);
-    		if(Dictionary.getSingleton().isStopWord(this.segmentBuff ,  result.getBegin() , result.getLength())){
-       			//是停止词继续取列表的下一个
-    			result = this.results.pollFirst(); 				
-    		}else{
-	 			//不是停止词, 生成lexeme的词元文本,输出
-	    		result.setLexemeText(String.valueOf(segmentBuff , result.getBegin() , result.getLength()));
-	    		break;
-    		}
+		while (result != null) {
+			// 数量词合并
+			this.compound(result);
+			if (Dictionary.getSingleton().isStopWord(this.segmentBuff, result.getBegin(), result.getLength())) {
+				// 是停止词继续取列表的下一个
+				result = this.results.pollFirst();
+			} else {
+				// 不是停止词, 生成lexeme的词元文本,输出
+				result.setLexemeText(String.valueOf(segmentBuff, result.getBegin(), result.getLength()));
+				break;
+			}
 		}
 		return result;
 	}
-	
+
 	/**
 	 * 重置分词上下文状态
 	 */
-	void reset(){		
+	void reset() {
 		this.buffLocker.clear();
-        this.orgLexemes = new QuickSortSet();
-        this.available =0;
-        this.buffOffset = 0;
-    	this.charTypes = new int[BUFF_SIZE];
-    	this.cursor = 0;
-    	this.results.clear();
-    	this.segmentBuff = new char[BUFF_SIZE];
-    	this.pathMap.clear();
+		this.orgLexemes = new QuickSortSet();
+		this.available = 0;
+		this.buffOffset = 0;
+		this.charTypes = new int[BUFF_SIZE];
+		this.cursor = 0;
+		this.results.clear();
+		this.segmentBuff = new char[BUFF_SIZE];
+		this.pathMap.clear();
 	}
-	
+
 	/**
 	 * 组合词元
 	 */
-	private void compound(Lexeme result){
-		if(!this.cfg.useSmart()){
-			return ;
+	private void compound(Lexeme result) {
+		if (!this.cfg.useSmart()) {
+			return;
 		}
-   		//数量词合并处理
-		if(!this.results.isEmpty()){
+		// 数量词合并处理
+		if (!this.results.isEmpty()) {
 
-			if(Lexeme.TYPE_ARABIC == result.getLexemeType()){
+			if (Lexeme.TYPE_ARABIC == result.getLexemeType()) {
 				Lexeme nextLexeme = this.results.peekFirst();
 				boolean appendOk = false;
-				if(Lexeme.TYPE_CNUM == nextLexeme.getLexemeType()){
-					//合并英文数词+中文数词
+				if (Lexeme.TYPE_CNUM == nextLexeme.getLexemeType()) {
+					// 合并英文数词+中文数词
 					appendOk = result.append(nextLexeme, Lexeme.TYPE_CNUM);
-				}else if(Lexeme.TYPE_COUNT == nextLexeme.getLexemeType()){
-					//合并英文数词+中文量词
+				} else if (Lexeme.TYPE_COUNT == nextLexeme.getLexemeType()) {
+					// 合并英文数词+中文量词
 					appendOk = result.append(nextLexeme, Lexeme.TYPE_CQUAN);
 				}
-				if(appendOk){
-					//弹出
-					this.results.pollFirst(); 
+				if (appendOk) {
+					// 弹出
+					this.results.pollFirst();
 				}
 			}
-			
-			//可能存在第二轮合并
-			if(Lexeme.TYPE_CNUM == result.getLexemeType() && !this.results.isEmpty()){
+
+			// 可能存在第二轮合并
+			if (Lexeme.TYPE_CNUM == result.getLexemeType() && !this.results.isEmpty()) {
 				Lexeme nextLexeme = this.results.peekFirst();
 				boolean appendOk = false;
-				 if(Lexeme.TYPE_COUNT == nextLexeme.getLexemeType()){
-					 //合并中文数词+中文量词
- 					appendOk = result.append(nextLexeme, Lexeme.TYPE_CQUAN);
- 				}  
-				if(appendOk){
-					//弹出
-					this.results.pollFirst();   				
+				if (Lexeme.TYPE_COUNT == nextLexeme.getLexemeType()) {
+					// 合并中文数词+中文量词
+					appendOk = result.append(nextLexeme, Lexeme.TYPE_CQUAN);
+				}
+				if (appendOk) {
+					// 弹出
+					this.results.pollFirst();
 				}
 			}
 
 		}
 	}
-	
+
 }

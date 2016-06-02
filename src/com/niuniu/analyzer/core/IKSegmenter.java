@@ -151,7 +151,7 @@ public final class IKSegmenter {
 			//将分词结果输出到结果集，并处理未切分的单个CJK字符
 			context.outputToResult();
 			//牛牛业务逻辑  => 使用词典解决postProcess可能遇到的问题
-			//context.postProcess(this.cfg.useMerge(), this.cfg.mergeSize());
+			context.postProcess(this.cfg.useMerge(), this.cfg.mergeSize());
 			context.addNiuniuTag();
 			//记录本次分词的缓冲区位移
 			context.markBufferOffset();			

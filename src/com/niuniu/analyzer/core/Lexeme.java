@@ -65,7 +65,7 @@ public class Lexeme implements Comparable<Lexeme>{
     
     
 	public int getContentType() {
-		return contentType;
+		return contentType>0?contentType:-1;
 	}
 	
 	public String getContentTypeString() {
